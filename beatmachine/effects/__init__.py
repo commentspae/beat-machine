@@ -2,6 +2,6 @@
 The `effects` module provides a base effect class as well as some common effects to play with.
 """
 
-from . import base, periodic, temporal
+from . import base, periodic, temporal, multisong
 
 load_from_dict = base.EffectRegistry.load_effect_from_dict
