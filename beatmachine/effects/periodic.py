@@ -7,6 +7,7 @@ import abc
 from typing import Callable, Optional, List, Generator
 
 import numpy as np
+import librosa
 
 from beatmachine.effects.base import LoadableEffect, EffectABCMeta
 
@@ -157,3 +158,27 @@ class RepeatEveryNth(PeriodicEffect, metaclass=EffectABCMeta):
 
     def __eq__(self, other):
         return super(RepeatEveryNth, self).__eq__(other) and self.times == other.times
+
+
+class StretchEveryNth(PeriodicEffect, metaclass=EffectABCMeta):
+    """
+    A periodic effect that dilates beats by a given factor.
+    """
+
+    __effect_name__ = "stretch"
+
+    def __init__(self, *, period: int = 1, offset: int = 0, factor: float = 0.8):
+        if factor <= 0:
+            raise ValueError(
+                f"Stretch effect must have factor > 0, but got {factor}"
+            )
+
+        super().__init__(period=period, offset=offset)
+        self.factor = factor
+
+    def process_beat(self, beat: np.ndarray) -> np.ndarray:
+        samples, channels = np.shape(beat)
+        stretched = []
+        for ch in range(channels):
+            stretched.append(librosa.effects.time_stretch(beat[:, ch].astype(np.float32), self.factor))
+        return np.stack(stretched, axis=1).astype(np.int16)
